@@ -1,12 +1,13 @@
 package com.politrons.zio
 
 import org.junit.Test
+import zio.Runtime.default
 import zio.{Layer, Runtime, Scope, ULayer, Unsafe, ZIO, ZIOAppArgs, ZIOAppDefault, ZLayer}
 
 
 class ZIONewFeatures {
 
-  val runtime = Runtime.default
+  val runtime: default.UnsafeAPI = Runtime.default.unsafe
 
   /**
    * Now with ZIO 2.o0 the use of layers in the program as dependencies is far easier and less verbose
@@ -29,7 +30,7 @@ class ZIONewFeatures {
 
     Unsafe.unsafe { implicit unsafe =>
       val programWithDependencies = zioProgram.provideLayer(dependency)
-      val value = runtime.unsafe.run(programWithDependencies).getOrThrowFiberFailure()
+      val value = runtime.run(programWithDependencies).getOrThrowFiberFailure()
       println(s"Result $value")
     }
   }
@@ -57,7 +58,49 @@ class ZIONewFeatures {
     Unsafe.unsafe { implicit unsafe =>
 
       val programWithDependencies = zioProgram.provideLayer(dependency)
-      val value = runtime.unsafe.run(programWithDependencies).getOrThrowFiberFailure()
+      val value = runtime.run(programWithDependencies).getOrThrowFiberFailure()
+      println(s"Result $value")
+    }
+  }
+
+  /**
+   * In ZIO 2.0 effect operator was used to create an ZIO program with an effect, with a possible side-effect
+   * Now with version 2.0 we change that operator by [attempt] which it return an effect system with
+   * type [Throwable] as possible side-effect type
+   */
+  @Test
+  def attemptFeatures(): Unit = {
+
+    val program: ZIO[Any, Throwable, String] = ZIO.attempt("hello unsafe code")
+      .map(value => value.toUpperCase)
+
+    Unsafe.unsafe { implicit unsafe =>
+      val value = runtime.run(program).getOrThrowFiberFailure()
+      println(s"Result $value")
+    }
+  }
+
+
+  /**
+   * In version 2.0 is easier than ever to run an effect in another thread(Fiber)
+   * We just need to use [async] operator which it will provide a [callback] function that need to be filled
+   * with the ZIO.program to be run in the Fiber Thread.
+   */
+  @Test
+  def asyncFeatures(): Unit = {
+
+    val asyncProgram = ZIO.async[Any, Throwable, String] { callback =>
+
+      val program = for {
+        value <- ZIO.succeed(s"hello Async world in Thread ${Thread.currentThread().getName}")
+        newValue <- ZIO.attempt(value.toUpperCase)
+      } yield newValue
+
+      callback(program)
+    }
+
+    Unsafe.unsafe { implicit unsafe =>
+      val value = runtime.run(asyncProgram).getOrThrowFiberFailure()
       println(s"Result $value")
     }
   }
