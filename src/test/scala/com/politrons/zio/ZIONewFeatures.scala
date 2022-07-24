@@ -34,6 +34,12 @@ class ZIONewFeatures {
     }
   }
 
+  /**
+   * Make a program run with multiple dependencies, is now so simple like mark the dependency type
+   * with [with] without have to use [has] as we did with ZIO 1.0
+   *
+   * Then we need to create a ZLayer with this two dependencies in the type, just adding both with [++]
+   */
   @Test
   def multipleLayerFeatures(): Unit = {
 
