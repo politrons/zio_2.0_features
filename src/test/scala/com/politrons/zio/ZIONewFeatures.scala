@@ -2,7 +2,9 @@ package com.politrons.zio
 
 import org.junit.Test
 import zio.Runtime.default
-import zio.{Layer, Runtime, Scope, ULayer, Unsafe, ZIO, ZIOAppArgs, ZIOAppDefault, ZLayer}
+import zio.{Layer, Runtime, Schedule, Scope, UIO, ULayer, Unsafe, ZIO, ZIOAppArgs, ZIOAppDefault, ZLayer, ZState}
+
+import java.util.Random
 
 
 class ZIONewFeatures {
@@ -105,4 +107,21 @@ class ZIONewFeatures {
       println(s"Result $value")
     }
   }
+
+  @Test
+  def zStateFeatures(): Unit = {
+
+    val statefulProgram: ZIO[ZState[String], Nothing, String] = for {
+      state <- ZIO.service[ZState[String]]
+      _ <- state.update(value => value.toUpperCase + "!!!!")
+      value <- state.get
+    } yield value
+
+    Unsafe.unsafe { implicit unsafe =>
+      val program = ZIO.stateful("Stateful value to be used in program")(statefulProgram)
+      val value = runtime.run(program).getOrThrowFiberFailure()
+      println(s"Result: $value")
+    }
+  }
+
 }
