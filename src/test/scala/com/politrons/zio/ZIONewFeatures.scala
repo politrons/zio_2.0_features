@@ -108,6 +108,11 @@ class ZIONewFeatures {
     }
   }
 
+  /**
+   * Using [ZState] we can have a monad reader/writer to be used during thr program.
+   * In order to update the value of the monad, we just need to use [update] operator,
+   * and to extract the value we need to use [get]
+   */
   @Test
   def zStateFeatures(): Unit = {
 
