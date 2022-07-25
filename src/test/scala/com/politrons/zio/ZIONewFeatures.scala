@@ -2,9 +2,7 @@ package com.politrons.zio
 
 import org.junit.Test
 import zio.Runtime.default
-import zio.{Layer, Runtime, Schedule, Scope, UIO, ULayer, Unsafe, ZIO, ZIOAppArgs, ZIOAppDefault, ZLayer, ZState}
-
-import java.util.Random
+import zio.{Runtime, ULayer, Unsafe, ZIO, ZLayer, ZState}
 
 
 class ZIONewFeatures {
